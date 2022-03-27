@@ -1,4 +1,4 @@
-import Wrapper from './components/ui/Wrapper';
+import Wrapper from './components/wrapper/Wrapper';
 
 function App() {
   return (

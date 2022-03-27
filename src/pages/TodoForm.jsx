@@ -1,34 +1,51 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { useSelector } from 'react-redux'
 import styled, { createGlobalStyle } from 'styled-components'
 import { todoSliceActions } from '../store/todo-slice'
 import TodoItem from './TodoItem'
-import Header from './ui/Header'
+import ErrorModal from '../components/ui/modal/ErrorModal'
+import Header from '../components/ui/Header'
+import { useCallbackPrompt } from '../components/ui/Prompt/Prompt2'
+import PromptModal from '../components/ui/modal/PromptModal'
 
 const TodoList = () => {
 	const state = useSelector((state) => state.todo.columnData)
 	const [showTogle, setShowTogle] = useState(false)
+	const [errorModal, setErrorModal] = useState(false)
 	const dispath = useDispatch()
+	const [showModalPrompt , setShowModalPrompt ] = useState(false)
+	const [ showPrompt, confirmNavigation, cancelNavigation ] = useCallbackPrompt(showModalPrompt)
 	const [title, setTitle] = useState('')
 
 	const titleChangeHandler = (e) => {
 		setTitle(e.target.value)
-	}
-
-	const sybmitHandler = (e) => {
-		e.preventDefault()
-		const coumnData = {
-			title,
-			id: Math.random().toString(),
-			tasks: [],
+	} 
+	useEffect(()=>{
+		if(title.trim().length >0 ){
+			setShowModalPrompt(true)
 		}
-		dispath(todoSliceActions.add(coumnData))
+	})
+	const sybmitHandler = (e) => {
+		setShowModalPrompt(true)
+		e.preventDefault()
+		if (title.trim().length > 0) {
+			const coumnData = {
+				title,
+				id: Math.random().toString(),
+				tasks: [],
+			}
+			dispath(todoSliceActions.add(coumnData))
+			setTitle('')
+		} else {
+			setErrorModal(<ErrorModal />)
+		}
 	}
 	return (
 		<>
-			<GlobalStyle />
-			<Header />
+		 <GlobalStyle />
+		  {showPrompt && <PromptModal confirmNavigation={confirmNavigation} cancelNavigation={cancelNavigation}/>}
+		  <Header />
 			<Main>
 				<CardLists>
 					{state.map((el) => {
@@ -65,23 +82,32 @@ const TodoList = () => {
 					)}
 				</GlobalFlex>
 			</Main>
+			<ErrorModal
+				active={errorModal}
+				setActive={() => setErrorModal(false)}
+			/>
 		</>
 	)
 }
 const GlobalStyle = createGlobalStyle`
 body {
-    background-image: url('https://images5.alphacoders.com/379/379438.jpg');
+  background-color: skyblue;
+  background-image: -webkit-linear-gradient(90deg, skyblue 0%, steelblue 100%);
+  background-attachment: fixed;
+  margin: 0 auto;
 }
 `
 const Main = styled.main`
 	display: flex;
 	align-items: start;
+	width: 1280px;
+	margin: 0 auto;
 `
 const CardLists = styled.section`
 	display: flex;
 	justify-content: space-between;
+	margin-left: 15px;
 	align-items: start;
-	margin-right: 20px;
 	& div {
 		margin-right: 15px;
 	}
@@ -91,7 +117,7 @@ const GlobalFlex = styled.div`
 	align-items: start;
 `
 const Container = styled.form`
-	width: 300px;
+	width: 250px;
 	background-color: #ebecf0;
 	border-radius: 3px;
 	padding: 4px;
@@ -131,7 +157,9 @@ const Button = styled.button`
 	padding-top: 4px;
 `
 const Span = styled.span`
-	font-size: 20px;
+	width: 250px;
+	text-align: center;
+	font-size: 15px;
 	color: black;
 	background: white;
 	padding: 15px 8px;
